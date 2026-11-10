@@ -1,0 +1,19 @@
+{
+  "name": "signal-v2-server",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "SIGNAL backend — the only thing that talks to YouTube and Gemini.",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@google/genai": "^1.30.0",
+    "better-sqlite3": "^12.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.0",
+    "express": "^4.21.2"
+  }
+}

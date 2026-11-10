@@ -1,0 +1,20 @@
+{
+  "name": "signal-v2-client",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "SIGNAL frontend — never holds API keys; talks only to the Express proxy.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.7"
+  }
+}

@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGNAL — Channel Scouting Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-void:#0E1013;
+    --panel:#15181D;
+    --panel-raised:#1D2129;
+    --line:#282D36;
+    --line-soft:#1F232B;
+    --text-primary:#EDEEF0;
+    --text-secondary:#8A909C;
+    --text-tertiary:#565C67;
+    --amber:#FFB300;
+    --amber-dim:#8A6414;
+    --green:#3DDC84;
+    --red:#FF6259;
+    --radius:10px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg-void);
+    color:var(--text-primary);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+  }
+  ::selection{background:var(--amber);color:#0E1013;}
+
+  a{color:var(--amber);}
+
+  :focus-visible{
+    outline:2px solid var(--amber);
+    outline-offset:2px;
+  }
+
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .display{font-family:'Space Grotesk',sans-serif;}
+
+  /* ===== Header ===== */
+  header.console{
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#12151A,var(--bg-void));
+    padding:18px 24px;
+    position:sticky;
+    top:0;
+    z-index:20;
+  }
+  .console-inner{
+    max-width:1280px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    flex-wrap:wrap;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .tally{
+    width:10px;height:10px;border-radius:50%;
+    background:var(--amber);
+    box-shadow:0 0 8px 1px rgba(255,179,0,.7);
+    animation:pulse 2.2s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce){ .tally{animation:none;} }
+  @keyframes pulse{
+    0%,100%{opacity:1;}
+    50%{opacity:.35;}
+  }
+  .brand h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:0.04em;
+    margin:0;
+  }
+  .brand span.sub{
+    display:block;
+    font-size:11px;
+    color:var(--text-tertiary);
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    margin-top:1px;
+  }
+
+  .key-field{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .key-field label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.07em;
+    color:var(--text-secondary);
+    white-space:nowrap;
+  }
+  .key-input-wrap{
+    position:relative;
+    display:flex;
+    align-items:center;
+  }
+  input[type="password"], input[type="text"], input[type="number"], select{
+    background:var(--panel-raised);
+    border:1px solid var(--line);
+    color:var(--text-primary);
+    border-radius:6px;
+    padding:8px 10px;
+    font-size:13px;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  input::placeholder{color:var(--text-tertiary);}
+  #apiKey{width:220px;padding-right:34px;}
+  .toggle-visibility{
+    position:absolute;
+    right:6px;
+    background:none;
+    border:none;
+    color:var(--text-tertiary);
+    cursor:pointer;
+    font-size:11px;
+    font-family:'IBM Plex Mono',monospace;
+    padding:4px 6px;
+  }
+  .toggle-visibility:hover{color:var(--text-secondary);}
+
+  details.help{
+    max-width:1280px;
+    margin:10px auto 0;
+    font-size:12.5px;
+    color:var(--text-secondary);
+  }
+  details.help summary{
+    cursor:pointer;
+    color:var(--amber);
+    list-style:none;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  details.help summary::-webkit-details-marker{display:none;}
+  details.help summary::before{content:"▸";display:inline-block;transition:transform .15s;}
+  details.help[open] summary::before{transform:rotate(90deg);}
+  details.help .help-body{
+    margin-top:10px;
+    padding:12px 14px;
+    background:var(--panel);
+    border:1px solid var(--line-soft);
+    border-radius:8px;
+    line-height:1.6;
+  }
+  details.help ol{margin:6px 0 0 18px;padding:0;}
+
+  /* ===== Search row ===== */
+  .search-row{
+    max-width:1280px;
+    margin:16px auto 0;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  #niche{
+    flex:1 1 320px;
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    padding:11px 14px;
+  }
+  button.primary{
+    background:var(--amber);
+    color:#1A1300;
+    border:none;
+    border-radius:6px;
+    padding:0 22px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:0.02em;
+    cursor:pointer;
+    transition:background .12s, transform .05s;
+  }
+  button.primary:hover{background:#FFC53D;}
+  button.primary:active{transform:scale(0.98);}
+  button.primary:disabled{background:var(--amber-dim);color:#3a2f10;cursor:not-allowed;}
+
+  /* ===== Layout ===== */
+  .layout{
+    max-width:1280px;
+    margin:22px auto 60px;
+    padding:0 24px;
+    display:grid;
+    grid-template-columns:260px 1fr;
+    gap:24px;
+    align-items:start;
+  }
+  @media (max-width:860px){
+    .layout{grid-template-columns:1fr;}
+    header.console{padding:16px;}
+  }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line-soft);
+    border-radius:var(--radius);
+    padding:18px;
+  }
+  .panel h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--text-secondary);
+    margin:0 0 16px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .panel h2::before{
+    content:"";
+    width:6px;height:6px;
+    background:var(--amber);
+    display:inline-block;
+  }
+
+  .field{margin-bottom:16px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{
+    display:block;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--text-tertiary);
+    margin-bottom:6px;
+  }
+  .field select, .field input{width:100%;}
+  .range-pair{display:flex;gap:8px;}
+  .range-pair input{width:50%;}
+
+  button.ghost{
+    width:100%;
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--text-secondary);
+    border-radius:6px;
+    padding:8px;
+    font-size:12px;
+    font-family:'Inter',sans-serif;
+    cursor:pointer;
+    margin-top:4px;
+  }
+  button.ghost:hover{border-color:var(--amber-dim);color:var(--text-primary);}
+
+  .quota-note{
+    font-size:11px;
+    color:var(--text-tertiary);
+    margin-top:14px;
+    line-height:1.5;
+    border-top:1px solid var(--line-soft);
+    padding-top:12px;
+  }
+
+  /* ===== Results ===== */
+  #status-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+    font-size:12px;
+    color:var(--text-tertiary);
+    min-height:18px;
+  }
+  #status-bar .count{color:var(--text-secondary);}
+
+  .state-msg{
+    padding:60px 20px;
+    text-align:center;
+    color:var(--text-tertiary);
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+    font-size:14px;
+    line-height:1.7;
+  }
+  .state-msg.error{
+    color:#FFB3AD;
+    border-color:#4A2622;
+    background:rgba(255,98,89,0.06);
+  }
+  .state-msg strong{display:block;color:var(--text-primary);font-family:'Space Grotesk',sans-serif;font-size:15px;margin-bottom:6px;}
+  .state-msg.error strong{color:#FF8A82;}
+
+  .spinner{
+    width:16px;height:16px;
+    border:2px solid var(--line);
+    border-top-color:var(--amber);
+    border-radius:50%;
+    display:inline-block;
+    animation:spin .7s linear infinite;
+    vertical-align:middle;
+    margin-right:8px;
+  }
+  @media (prefers-reduced-motion: reduce){ .spinner{animation:none;} }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:14px;
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line-soft);
+    border-radius:var(--radius);
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .card-top{display:flex;gap:12px;}
+  .card-top img.avatar{
+    width:52px;height:52px;
+    border-radius:50%;
+    object-fit:cover;
+    border:1px solid var(--line);
+    flex-shrink:0;
+  }
+  .card-id{min-width:0;}
+  .card-id .name{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .card-id .meta{
+    font-size:11px;
+    color:var(--text-tertiary);
+    margin-top:2px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .tag{
+    background:var(--panel-raised);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:1px 6px;
+    font-size:10px;
+    letter-spacing:0.03em;
+  }
+
+  .desc{
+    font-size:12.5px;
+    color:var(--text-secondary);
+    line-height:1.5;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+
+  .stat-row{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:6px;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .stat{
+    background:var(--panel-raised);
+    border:1px solid var(--line-soft);
+    border-radius:6px;
+    padding:6px 4px;
+    text-align:center;
+  }
+  .stat .val{font-size:13px;font-weight:600;color:var(--text-primary);}
+  .stat.highlight .val{color:var(--amber);}
+  .stat .lbl{font-size:9px;color:var(--text-tertiary);letter-spacing:0.05em;margin-top:2px;}
+
+  .signal-bar{
+    height:4px;
+    background:var(--line-soft);
+    border-radius:2px;
+    overflow:hidden;
+  }
+  .signal-bar span{
+    display:block;height:100%;
+    background:linear-gradient(90deg,var(--amber-dim),var(--amber));
+    border-radius:2px;
+  }
+
+  button.expand{
+    background:none;
+    border:1px solid var(--line);
+    color:var(--text-secondary);
+    border-radius:6px;
+    padding:7px 10px;
+    font-size:12px;
+    cursor:pointer;
+    text-align:left;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  button.expand:hover{color:var(--text-primary);border-color:var(--amber-dim);}
+  button.expand .arrow{transition:transform .15s;}
+  button.expand.open .arrow{transform:rotate(90deg);}
+
+  .video-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    border-top:1px solid var(--line-soft);
+    padding-top:10px;
+  }
+  .video-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .video-row img{
+    width:80px;height:45px;
+    object-fit:cover;
+    border-radius:4px;
+    border:1px solid var(--line);
+    flex-shrink:0;
+  }
+  .video-row .vinfo{min-width:0;}
+  .video-row .vtitle{
+    font-size:12px;
+    line-height:1.35;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .video-row .vmeta{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    color:var(--text-tertiary);
+    margin-top:3px;
+  }
+  .video-row .vmeta .dur{color:var(--green);margin-left:6px;}
+  .video-loading, .video-empty{font-size:12px;color:var(--text-tertiary);padding:6px 0;}
+
+  footer{
+    text-align:center;
+    color:var(--text-tertiary);
+    font-size:11px;
+    padding:20px;
+  }
+</style>
+</head>
+<body>
+
+<header class="console">
+  <div class="console-inner">
+    <div class="brand">
+      <span class="tally" aria-hidden="true"></span>
+      <div>
+        <h1>SIGNAL</h1>
+        <span class="sub">Channel scouting console</span>
+      </div>
+    </div>
+    <div class="key-field">
+      <label for="apiKey">YouTube API key</label>
+      <div class="key-input-wrap">
+        <input type="password" id="apiKey" placeholder="Paste your key" autocomplete="off">
+        <button type="button" class="toggle-visibility" id="toggleKey">SHOW</button>
+      </div>
+    </div>
+  </div>
+  <details class="help">
+    <summary>Where do I get an API key?</summary>
+    <div class="help-body">
+      It's free from Google, takes about two minutes, and this app talks to it directly — your key never leaves your browser except to call Google's API.
+      <ol>
+        <li>Go to the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console credentials page</a> and create a project (or pick an existing one).</li>
+        <li>Open <strong>APIs &amp; Services → Library</strong>, search for <strong>"YouTube Data API v3"</strong>, and click <strong>Enable</strong>.</li>
+        <li>Back on the Credentials page, click <strong>Create Credentials → API key</strong>, then copy it into the field above.</li>
+      </ol>
+      The free tier gives you 10,000 quota units a day — each search here costs about 100 units, so roughly 90–100 searches per day at no cost.
+    </div>
+  </details>
+</header>
+
+<div class="search-row">
+  <input type="text" id="niche" placeholder="Search a niche or keyword — e.g. &quot;personal finance&quot;, &quot;true crime&quot;, &quot;woodworking&quot;">
+  <button class="primary" id="searchBtn">Scan channels</button>
+</div>
+
+<div class="layout">
+  <aside class="panel">
+    <h2>Filters</h2>
+    <div class="field">
+      <label for="sortBy">Sort by</label>
+      <select id="sortBy">
+        <option value="relevance">Relevance</option>
+        <option value="subs_desc">Subscribers — high to low</option>
+        <option value="subs_asc">Subscribers — low to high</option>
+        <option value="views_desc">Total views — high to low</option>
+        <option value="avg_desc">Avg views / video</option>
+        <option value="videos_desc">Video count</option>
+        <option value="newest">Channel age — newest first</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Subscriber range</label>
+      <div class="range-pair">
+        <input type="number" id="minSubs" placeholder="Min" min="0">
+        <input type="number" id="maxSubs" placeholder="Max" min="0">
+      </div>
+    </div>
+    <div class="field">
+      <label for="country">Country</label>
+      <select id="country">
+        <option value="">Any</option>
+        <option value="US">United States</option>
+        <option value="GB">United Kingdom</option>
+        <option value="CA">Canada</option>
+        <option value="AU">Australia</option>
+        <option value="IN">India</option>
+        <option value="DE">Germany</option>
+        <option value="FR">France</option>
+        <option value="BR">Brazil</option>
+        <option value="MX">Mexico</option>
+        <option value="JP">Japan</option>
+        <option value="KR">South Korea</option>
+        <option value="ES">Spain</option>
+        <option value="IT">Italy</option>
+        <option value="NL">Netherlands</option>
+        <option value="PH">Philippines</option>
+        <option value="ID">Indonesia</option>
+        <option value="NG">Nigeria</option>
+        <option value="ZA">South Africa</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="maxResults">Channels to scan</label>
+      <select id="maxResults">
+        <option value="12">12</option>
+        <option value="25" selected>25</option>
+        <option value="50">50</option>
+      </select>
+    </div>
+    <button class="ghost" id="resetBtn">Reset filters</button>
+    <div class="quota-note">Filters apply after each scan — change them and re-run "Scan channels" to refetch, or they'll re-apply instantly to results already on screen.</div>
+  </aside>
+
+  <main>
+    <div id="status-bar">
+      <span id="statusText"></span>
+      <span class="count" id="resultCount"></span>
+    </div>
+    <div id="results">
+      <div class="state-msg">
+        <strong>No transmission yet</strong>
+        Enter your API key and a niche above, then hit Scan channels.
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>SIGNAL runs entirely in your browser and calls the official YouTube Data API v3. Nothing is stored or sent anywhere else.</footer>
+
+<script>
+(function(){
+  const apiKeyInput = document.getElementById('apiKey');
+  const toggleKey = document.getElementById('toggleKey');
+  const nicheInput = document.getElementById('niche');
+  const searchBtn = document.getElementById('searchBtn');
+  const resultsEl = document.getElementById('results');
+  const statusText = document.getElementById('statusText');
+  const resultCount = document.getElementById('resultCount');
+  const sortBy = document.getElementById('sortBy');
+  const minSubs = document.getElementById('minSubs');
+  const maxSubs = document.getElementById('maxSubs');
+  const countrySel = document.getElementById('country');
+  const maxResultsSel = document.getElementById('maxResults');
+  const resetBtn = document.getElementById('resetBtn');
+
+  let rawChannels = []; // last fetched, unfiltered
+  let loading = false;
+
+  toggleKey.addEventListener('click', () => {
+    const isPw = apiKeyInput.type === 'password';
+    apiKeyInput.type = isPw ? 'text' : 'password';
+    toggleKey.textContent = isPw ? 'HIDE' : 'SHOW';
+  });
+
+  resetBtn.addEventListener('click', () => {
+    sortBy.value = 'relevance';
+    minSubs.value = '';
+    maxSubs.value = '';
+    countrySel.value = '';
+    maxResultsSel.value = '25';
+    if (rawChannels.length) renderChannels(applyFilters(rawChannels));
+  });
+
+  [sortBy, minSubs, maxSubs, countrySel].forEach(el => {
+    el.addEventListener('change', () => {
+      if (rawChannels.length) renderChannels(applyFilters(rawChannels));
+    });
+  });
+
+  nicheInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') runSearch();
+  });
+  searchBtn.addEventListener('click', runSearch);
+
+  function formatNumber(n){
+    n = Number(n) || 0;
+    if (n >= 1e9) return (n/1e9).toFixed(1).replace(/\.0$/,'') + 'B';
+    if (n >= 1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'') + 'M';
+    if (n >= 1e3) return (n/1e3).toFixed(1).replace(/\.0$/,'') + 'K';
+    return String(n);
+  }
+
+  function formatDuration(iso){
+    const m = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(iso || '');
+    if (!m) return '';
+    const h = parseInt(m[1]||0,10), mi = parseInt(m[2]||0,10), s = parseInt(m[3]||0,10);
+    if (h) return `${h}:${String(mi).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    return `${mi}:${String(s).padStart(2,'0')}`;
+  }
+
+  function formatDate(iso){
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  function setStatus(text){ statusText.textContent = text; }
+
+  async function apiGet(path, params){
+    const key = apiKeyInput.value.trim();
+    const url = new URL(`https://www.googleapis.com/youtube/v3/${path}`);
+    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+    url.searchParams.set('key', key);
+    const res = await fetch(url.toString());
+    const data = await res.json();
+    if (!res.ok) {
+      const msg = (data && data.error && data.error.message) ? data.error.message : `Request failed (${res.status})`;
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  async function runSearch(){
+    if (loading) return;
+    const key = apiKeyInput.value.trim();
+    const niche = nicheInput.value.trim();
+
+    if (!key){
+      showError('No API key', 'Paste a YouTube Data API v3 key into the field at the top right — see "Where do I get an API key?" for steps.');
+      return;
+    }
+    if (!niche){
+      showError('No niche entered', 'Type a keyword or niche to search for, like "personal finance" or "true crime".');
+      return;
+    }
+
+    loading = true;
+    searchBtn.disabled = true;
+    searchBtn.textContent = 'Scanning…';
+    setStatus('');
+    resultCount.textContent = '';
+    resultsEl.innerHTML = `<div class="state-msg"><span class="spinner"></span>Scanning YouTube for "${escapeHtml(niche)}"…</div>`;
+
+    try {
+      const limit = parseInt(maxResultsSel.value, 10);
+      const searchData = await apiGet('search', {
+        part:'snippet', type:'channel', q:niche, maxResults:limit
+      });
+
+      const channelIds = (searchData.items || [])
+        .map(it => it.snippet && it.snippet.channelId ? it.snippet.channelId : it.id.channelId)
+        .filter(Boolean);
+
+      if (!channelIds.length){
+        rawChannels = [];
+        showEmpty('No channels found', `Nothing matched "${escapeHtml(niche)}". Try a broader or different keyword.`);
+        return;
+      }
+
+      const detailData = await apiGet('channels', {
+        part:'snippet,statistics,contentDetails', id: channelIds.join(',')
+      });
+
+      rawChannels = (detailData.items || []).map(ch => {
+        const subs = ch.statistics.hiddenSubscriberCount ? null : parseInt(ch.statistics.subscriberCount || '0', 10);
+        const views = parseInt(ch.statistics.viewCount || '0', 10);
+        const videos = parseInt(ch.statistics.videoCount || '0', 10);
+        return {
+          id: ch.id,
+          title: ch.snippet.title,
+          description: ch.snippet.description,
+          thumb: ch.snippet.thumbnails && (ch.snippet.thumbnails.medium || ch.snippet.thumbnails.default) ? (ch.snippet.thumbnails.medium || ch.snippet.thumbnails.default).url : '',
+          country: ch.snippet.country || '',
+          publishedAt: ch.snippet.publishedAt,
+          subs, views, videos,
+          avg: videos > 0 ? Math.round(views/videos) : 0,
+          uploadsPlaylist: ch.contentDetails && ch.contentDetails.relatedPlaylists ? ch.contentDetails.relatedPlaylists.uploads : null
+        };
+      });
+
+      renderChannels(applyFilters(rawChannels));
+    } catch(err){
+      rawChannels = [];
+      showError('Signal lost', err.message || 'Something went wrong talking to the YouTube API. Check your key and try again.');
+    } finally {
+      loading = false;
+      searchBtn.disabled = false;
+      searchBtn.textContent = 'Scan channels';
+    }
+  }
+
+  function applyFilters(list){
+    let out = list.slice();
+    const min = minSubs.value !== '' ? parseInt(minSubs.value,10) : null;
+    const max = maxSubs.value !== '' ? parseInt(maxSubs.value,10) : null;
+    const country = countrySel.value;
+
+    out = out.filter(c => {
+      if (min !== null && (c.subs === null || c.subs < min)) return false;
+      if (max !== null && (c.subs === null || c.subs > max)) return false;
+      if (country && c.country !== country) return false;
+      return true;
+    });
+
+    switch(sortBy.value){
+      case 'subs_desc': out.sort((a,b)=>(b.subs||0)-(a.subs||0)); break;
+      case 'subs_asc': out.sort((a,b)=>(a.subs||0)-(b.subs||0)); break;
+      case 'views_desc': out.sort((a,b)=>b.views-a.views); break;
+      case 'avg_desc': out.sort((a,b)=>b.avg-a.avg); break;
+      case 'videos_desc': out.sort((a,b)=>b.videos-a.videos); break;
+      case 'newest': out.sort((a,b)=>new Date(b.publishedAt)-new Date(a.publishedAt)); break;
+      default: break; // relevance = original order
+    }
+    return out;
+  }
+
+  function showEmpty(title, body){
+    resultsEl.innerHTML = `<div class="state-msg"><strong>${escapeHtml(title)}</strong>${escapeHtml(body)}</div>`;
+    setStatus('');
+    resultCount.textContent = '';
+  }
+  function showError(title, body){
+    resultsEl.innerHTML = `<div class="state-msg error"><strong>${escapeHtml(title)}</strong>${escapeHtml(body)}</div>`;
+    setStatus('');
+    resultCount.textContent = '';
+  }
+
+  function renderChannels(list){
+    if (!list.length){
+      showEmpty('No channels match your filters', 'Widen the subscriber range or clear the country filter and try again.');
+      return;
+    }
+    setStatus(`Sorted by ${sortBy.options[sortBy.selectedIndex].text.toLowerCase()}`);
+    resultCount.textContent = `${list.length} channel${list.length===1?'':'s'}`;
+
+    const maxSubsInList = Math.max(...list.map(c => c.subs || 0), 1);
+
+    resultsEl.innerHTML = `<div class="grid">${list.map(c => cardHtml(c, maxSubsInList)).join('')}</div>`;
+
+    list.forEach(c => {
+      const btn = document.querySelector(`[data-expand="${c.id}"]`);
+      if (!btn) return;
+      btn.addEventListener('click', () => toggleVideos(c, btn));
+    });
+  }
+
+  function cardHtml(c, maxSubsInList){
+    const barPct = c.subs !== null ? Math.max(4, Math.round((c.subs / maxSubsInList) * 100)) : 0;
+    const subsDisplay = c.subs !== null ? formatNumber(c.subs) : 'Hidden';
+    const year = c.publishedAt ? new Date(c.publishedAt).getFullYear() : '—';
+    return `
+      <div class="card">
+        <div class="card-top">
+          ${c.thumb ? `<img class="avatar" src="${c.thumb}" alt="">` : '<div class="avatar" style="background:var(--panel-raised)"></div>'}
+          <div class="card-id">
+            <div class="name" title="${escapeHtml(c.title)}">${escapeHtml(c.title)}</div>
+            <div class="meta">
+              <span class="tag">Since ${year}</span>
+              ${c.country ? `<span class="tag">${escapeHtml(c.country)}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="desc">${escapeHtml(c.description) || 'No description provided.'}</div>
+        <div class="signal-bar"><span style="width:${barPct}%"></span></div>
+        <div class="stat-row">
+          <div class="stat ${sortBy.value.startsWith('subs')?'highlight':''}"><div class="val">${subsDisplay}</div><div class="lbl">SUBS</div></div>
+          <div class="stat ${sortBy.value==='views_desc'?'highlight':''}"><div class="val">${formatNumber(c.views)}</div><div class="lbl">VIEWS</div></div>
+          <div class="stat ${sortBy.value==='videos_desc'?'highlight':''}"><div class="val">${formatNumber(c.videos)}</div><div class="lbl">VIDS</div></div>
+          <div class="stat ${sortBy.value==='avg_desc'?'highlight':''}"><div class="val">${formatNumber(c.avg)}</div><div class="lbl">AVG/VID</div></div>
+        </div>
+        <button class="expand" data-expand="${c.id}" ${!c.uploadsPlaylist ? 'disabled' : ''}>
+          <span>${c.uploadsPlaylist ? 'View recent uploads' : 'No public uploads found'}</span>
+          <span class="arrow">▸</span>
+        </button>
+        <div class="video-slot" data-slot="${c.id}"></div>
+      </div>
+    `;
+  }
+
+  async function toggleVideos(c, btn){
+    const slot = document.querySelector(`[data-slot="${c.id}"]`);
+    const isOpen = btn.classList.contains('open');
+    if (isOpen){
+      btn.classList.remove('open');
+      slot.innerHTML = '';
+      return;
+    }
+    btn.classList.add('open');
+    slot.innerHTML = '<div class="video-loading"><span class="spinner"></span>Loading recent uploads…</div>';
+
+    try {
+      const plData = await apiGet('playlistItems', {
+        part:'snippet', playlistId: c.uploadsPlaylist, maxResults: 10
+      });
+      const videoIds = (plData.items || [])
+        .map(it => it.snippet && it.snippet.resourceId ? it.snippet.resourceId.videoId : null)
+        .filter(Boolean);
+
+      if (!videoIds.length){
+        slot.innerHTML = '<div class="video-empty">No public uploads found.</div>';
+        return;
+      }
+
+      const vidData = await apiGet('videos', {
+        part:'statistics,contentDetails,snippet', id: videoIds.join(',')
+      });
+      const byId = {};
+      (vidData.items||[]).forEach(v => byId[v.id] = v);
+
+      const rows = videoIds.map(id => {
+        const v = byId[id];
+        if (!v) return '';
+        const thumb = v.snippet.thumbnails && (v.snippet.thumbnails.default||{}).url;
+        return `
+          <div class="video-row">
+            ${thumb ? `<img src="${thumb}" alt="">` : ''}
+            <div class="vinfo">
+              <div class="vtitle">${escapeHtml(v.snippet.title)}</div>
+              <div class="vmeta">${formatNumber(v.statistics.viewCount||0)} views · ${formatDate(v.snippet.publishedAt)}<span class="dur">${formatDuration(v.contentDetails.duration)}</span></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      slot.innerHTML = `<div class="video-list">${rows}</div>`;
+    } catch(err){
+      slot.innerHTML = `<div class="video-empty">Couldn't load uploads: ${escapeHtml(err.message||'unknown error')}</div>`;
+    }
+  }
+})();
+</script>
+</body>
+</html>

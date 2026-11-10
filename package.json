@@ -1,0 +1,18 @@
+{
+  "name": "signal-v2",
+  "version": "2.0.0",
+  "private": true,
+  "description": "SIGNAL — YouTube niche scouting platform (full-stack). Backend proxy keeps API keys server-side; AI agent, bookmarks, analytics.",
+  "type": "module",
+  "scripts": {
+    "postinstall": "npm --prefix server install && npm --prefix client install",
+    "dev": "concurrently -k -n SERVER,CLIENT -c yellow,cyan \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
+    "start": "npm --prefix server start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
